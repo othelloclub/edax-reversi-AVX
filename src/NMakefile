@@ -1,0 +1,136 @@
+#
+# makefile
+#
+# Compilation options for Microsoft Visual C++ & nmake.
+#
+# If you have a CPU supporting popcount (Intel Nehalem (i7) or AMD Barcelona or greater),
+# add /D POPCOUNT to the compiler option set.
+#
+
+# Microsoft Visual C++ 2008 or better for Windows (7 or Vista).
+# VC_FLAGS = /source-charset:.1252 /execution-charset:.1252\
+VC_FLAGS = /D UNICODE /utf-8 /D _CRT_SECURE_NO_DEPRECATE /I"..\include" /O2 /fp:fast /GS- /D NDEBUG /MT
+
+vc-x64-v3:
+	cl $(VC_FLAGS) /GL /D HAS_CPU_64 /arch:AVX2 /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-x86-64-v3.exe /link /VERSION:4.5
+
+vc-x64-v4:
+# remove /vlen=256 for cl earlier than 14.42
+	cl $(VC_FLAGS) /GL /D HAS_CPU_64 /arch:AVX512 /vlen=256 /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-x86-64-v4.exe /link /VERSION:4.5
+
+vc-x64-v2:
+	cl $(VC_FLAGS) /GL /D HAS_CPU_64 /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-x86-64-v2.exe /link /VERSION:4.5
+
+vc-x64-k10:
+	cl $(VC_FLAGS) /GL /D HAS_CPU_64 /D POPCOUNT /D __LZCNT__ /D MOVE_GENERATOR=MOVE_GENERATOR_BITSCAN /favor:AMD64 all.c ws2_32.lib /Fe..\bin\wEdax-x86-64-k10.exe /link /VERSION:4.5
+
+vc-x64:
+	cl $(VC_FLAGS) /GL /D HAS_CPU_64 all.c ws2_32.lib /Fe..\bin\wEdax-x86-64.exe /link /VERSION:4.5
+
+vc-x86-avx2:
+	cl $(VC_FLAGS) /GL /D hasSSE2 /arch:AVX2 /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-x86-avx2.exe
+
+vc-x86-sse:
+	cl $(VC_FLAGS) /GL /D hasSSE2 all.c ws2_32.lib /Fe..\bin\wEdax-x86-sse.exe
+
+vc-x86-mmx:
+	cl $(VC_FLAGS) /GL /arch:IA32 /D hasMMX all.c ws2_32.lib /Fe..\bin\wEdax-x86-mmx.exe
+
+vc-x86:
+	cl $(VC_FLAGS) /GL /arch:IA32 all.c ws2_32.lib /Fe..\bin\wEdax-x86.exe
+
+vc-a64:
+#	vcvarsamd64_arm64.bat
+	cl $(VC_FLAGS) /GL /D HAS_CPU_64 all.c ws2_32.lib /Fe..\bin\wEdax-arm64.exe /link /VERSION:4.5
+
+vc-a64+crc:
+#	vcvarsamd64_arm64.bat
+	cl $(VC_FLAGS) /GL /D HAS_CPU_64 /D__ARM_FEATURE_CRC32 all.c ws2_32.lib /Fe..\bin\wEdax-armv8.1-a.exe /link /VERSION:4.5
+
+vc-a32:
+#	vcvarsamd64_arm.bat
+	cl $(VC_FLAGS) /GL all.c ws2_32.lib /Fe..\bin\wEdax-arm.exe
+
+icc-x64-v3:
+	icl $(VC_FLAGS) /GL /D HAS_CPU_64 /arch:AVX2 /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-x86-64-v3.exe /link /VERSION:4.5
+
+icc-x64-v4:
+	icl $(VC_FLAGS) /GL /D HAS_CPU_64 /arch:CORE-AVX512 /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-x86-64-v4.exe /link /VERSION:4.5
+
+icc-x64:
+	icl $(VC_FLAGS) /GL /D HAS_CPU_64 all.c ws2_32.lib /Fe..\bin\wEdax-x86-64.exe /link /VERSION:4.5
+
+icc-x86-sse:
+	icl $(VC_FLAGS) /GL /D hasSSE2 /arch:SSE2 all.c ws2_32.lib /Fe..\bin\wEdax-x86-sse.exe
+
+icc-x86:
+	icl $(VC_FLAGS) /GL /arch:IA32 all.c ws2_32.lib /Fe..\bin\wEdax-x86.exe
+
+clang-x64-v3:
+	clang-cl $(VC_FLAGS) /D HAS_CPU_64 /arch:AVX2 /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-x86-64-v3.exe /link /VERSION:4.5
+
+clang-x64-v4:
+	clang-cl -mno-evex512 $(VC_FLAGS) /D HAS_CPU_64 /arch:AVX512 /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-x86-64-v4.exe /link /VERSION:4.5
+
+clang-x64:
+	clang-cl $(VC_FLAGS) /D HAS_CPU_64 all.c ws2_32.lib /Fe..\bin\wEdax-x86-64.exe /link /VERSION:4.5
+
+clang-x86-sse:
+	clang-cl -m32 $(VC_FLAGS) /arch:SSE2 /D hasSSE2 all.c ws2_32.lib /Fe..\bin\wEdax-x86-sse.exe
+
+clang-x86:
+	clang-cl -m32 $(VC_FLAGS) /arch:IA32 /D USE_GAS_X86 all.c ws2_32.lib /Fe..\bin\wEdax-x86.exe
+
+clang-a64:
+#	vcvarsamd64_arm64.bat
+	clang-cl --target=aarch64-win32-msvc $(VC_FLAGS) /D HAS_CPU_64 all.c ws2_32.lib /Fe..\bin\wEdax-arm64.exe /link /VERSION:4.5
+
+clang-a64+crc:
+#	vcvarsamd64_arm64.bat
+	clang-cl --target=aarch64-win32-msvc -mcrc $(VC_FLAGS) /D HAS_CPU_64 all.c ws2_32.lib /Fe..\bin\wEdax-armv8.1-a.exe /link /VERSION:4.5
+
+vc-pgo-x64-v3:
+	set VCPROFILE_PATH=..\src
+	cl $(VC_FLAGS) /GL /arch:AVX2 /D POPCOUNT all.c ws2_32.lib /Fe..\bin\wEdax-x86-64-v3.exe /link /ltcg:pgi /VERSION:4.5
+	cd ..\bin
+	wEdax-x86-64-v3 -l 60 -solve ..\problem\fforum-20-39.obf
+	wEdax-x86-64-v3 -l 18 -auto-store on -auto-start on -repeat 2 -auto-quit on -mode 2 -book-file book.pgo
+	del book.pgo book.pgo.store
+	cd ..\src
+	link all.obj  ws2_32.lib /out:..\bin\wEdax-x86-64-v3.exe /ltcg:pgo /VERSION:4.5
+	del *.pgc ..\bin\*.pgd
+
+vc-pgo-x64-k10:
+	set VCPROFILE_PATH=..\src
+	cl $(VC_FLAGS) /GL /D POPCOUNT /D __LZCNT__ /D MOVE_GENERATOR=MOVE_GENERATOR_BITSCAN all.c ws2_32.lib /Fe..\bin\wEdax-x86-64-k10.exe /link /ltcg:pgi /VERSION:4.5
+	cd ..\bin
+	wEdax-x86-64-k10 -l 60 -solve ..\problem\fforum-20-39.obf
+	wEdax-x86-64-k10 -l 18 -auto-store on -auto-start on -repeat 2 -auto-quit on -mode 2 -book-file book.pgo
+	del book.pgo book.pgo.store
+	cd ..\src
+	link all.obj  ws2_32.lib /out:..\bin\wEdax-x86-64-k10.exe /ltcg:pgo /VERSION:4.5
+	del *.pgc ..\bin\*.pgd
+
+vc-pgo-x64:
+	set VCPROFILE_PATH=..\src
+	cl $(VC_FLAGS) /GL all.c ws2_32.lib /Fe..\bin\wEdax-x86-64.exe /link /ltcg:pgi /VERSION:4.5
+	cd ..\bin
+	wEdax-x86-64 -l 60 -solve ..\problem\fforum-20-39.obf
+	wEdax-x86-64 -l 18 -auto-store on -auto-start on -repeat 2 -auto-quit on -mode 2 -book-file book.pgo
+	del book.pgo book.pgo.store
+	cd ..\src
+	link all.obj  ws2_32.lib /out:..\bin\wEdax-x86-64.exe /ltcg:pgo /VERSION:4.5
+	del *.pgc ..\bin\*.pgd
+
+icc-pgo-x64-v3:
+	icl $(VC_FLAGS) /arch:AVX2 /D POPCOUNT /Qprof-gen all.c ws2_32.lib /Fe..\bin\wEdax-x86-64-v3.exe /link /VERSION:4.5
+	cd ..\bin
+	wEdax-x86-64-v3 -l 60 -solve ..\problem\fforum-20-39.obf
+	wEdax-x86-64-v3 -l 18 -auto-store on -auto-start on -repeat 2 -auto-quit on -mode 2 -book-file book.pgo
+	del book.pgo book.pgo.store
+	cd ..\src
+	icl $(VC_FLAGS) /GL /arch:AVX2 /D POPCOUNT /Qprof-use /Qip all.c ws2_32.lib /Fe..\bin\wEdax-x86-64-v3.exe /link /VERSION:4.5
+
+clean:
+	del -f pgopti* *.dyn all.gc* *~ *.p* *.obj
+

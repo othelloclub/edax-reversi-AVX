@@ -1,0 +1,15 @@
+*.o
+*.s
+*.exe
+*~
+pgopti*
+*.dyn
+all.gc*
+generate_flip.*
+generate_count_flip.*
+bcnttest.*
+*.utf8.c
+bin/
+data/
+doc/
+problem/
