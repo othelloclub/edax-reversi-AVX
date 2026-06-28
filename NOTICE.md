@@ -15,8 +15,8 @@ FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 ## Modifications in this fork
 
-This fork adds WebAssembly and iOS-native builds of the engine plus a small
-endgame-search tuning.
+This fork adds WebAssembly, iOS-native, and Android-native builds of the engine
+plus a small endgame-search tuning.
 
 - `src/search.c` — endgame selectivity table adjusted within the level ≤ 21
   range (25–30 empties).
@@ -24,6 +24,8 @@ endgame-search tuning.
 - `wasm/bridge.c` — engine entry points (shared by the WASM and native builds).
 - `wasm/shim_log.c`, `wasm/shim_main.c` — WASM runtime shims.
 - `wasm/build_s.sh` (single-thread), `wasm/build_m.sh` (multi-thread),
-  `ios/build_ios.sh` (iOS static xcframework) — build scripts.
+  `ios/build_ios.sh` (iOS static xcframework),
+  `android/CMakeLists.txt` (Android NDK shared library) — build scripts.
+- `android/edax_jni.c` — JNI bridge for the Android shared library.
 
 All other source files are unchanged from the upstream Edax / AVX fork.
