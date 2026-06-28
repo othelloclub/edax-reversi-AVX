@@ -28,6 +28,9 @@
 #include <string.h>
 #include <stdbool.h>
 #include <signal.h>
+#ifdef __APPLE__
+#include <pthread/qos.h>   // pthread_attr_set_qos_class_np (iOS/macOS QoS)
+#endif
 #include <time.h>
 
 #if defined(__unix__) || defined(__APPLE__)
@@ -930,7 +933,15 @@ char* file_add_ext(const char *base, const char *ext, char *file)
  */
 void thread_create(Thread *thread, void* (*function)(void*), void *data)
 {
-#if defined(__unix__) || (defined(_WIN32) && defined(USE_PTHREAD)) || defined(__APPLE__)
+#if defined(__APPLE__)
+	/* iOS/macOS: 워커 pthread 에 QoS(USER_INITIATED) 부여 → AMP(P/E 코어) 배치를
+	   스케줄러가 결정하게 함. pthread_create 워커는 QoS 를 상속하지 않으므로 명시 필요. */
+	pthread_attr_t qos_attr;
+	pthread_attr_init(&qos_attr);
+	pthread_attr_set_qos_class_np(&qos_attr, QOS_CLASS_USER_INITIATED, 0);
+	pthread_create(thread, &qos_attr, function, data);
+	pthread_attr_destroy(&qos_attr);
+#elif defined(__unix__) || (defined(_WIN32) && defined(USE_PTHREAD))
 	pthread_create(thread, NULL, function, data);
 #elif defined(_WIN32)
 	DWORD id;

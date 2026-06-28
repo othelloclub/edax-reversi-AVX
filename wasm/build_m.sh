@@ -9,6 +9,7 @@ EMCC=emcc
 # 1) 공통 컴파일 플래그 (멀티스레드 + 최적화)
 CFLAGS=(
   -O3 -DNDEBUG -DEMSCRIPTEN -DUNICODE=1
+  -DFLIPSIGHT_FAST_ENDGAME            # 25-30빈칸 종반 sel=0(73%, 빠름). iOS 네이티브는 미정의→stock(98%/87%)
   -I../src
   -s USE_ZLIB=0
   -fno-exceptions

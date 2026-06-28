@@ -208,12 +208,18 @@ void search_global_init(void)
 				// sel = 5;
 			} else if (n_empties <= 27) {
 				// dep = n_empties;
-				// sel = 3;
-				sel = 0;
+#ifdef FLIPSIGHT_FAST_ENDGAME
+				sel = 0;   // WASM: 커스텀 73% (빠름)
+#else
+				sel = 3;   // stock 원본: 98% (네이티브)
+#endif
 			} else if (n_empties <= 30) {
 				// dep = n_empties;
-				// sel = 1;
-				sel = 0;
+#ifdef FLIPSIGHT_FAST_ENDGAME
+				sel = 0;   // WASM: 커스텀 73% (빠름)
+#else
+				sel = 1;   // stock 원본: 87% (네이티브)
+#endif
 			} else {
 				dep = level;
 				sel = 0;

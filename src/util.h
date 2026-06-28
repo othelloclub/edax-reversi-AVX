@@ -166,24 +166,24 @@ typedef pthread_cond_t Condition;
 
 #endif
 
-#ifdef __APPLE__ // Mac OS spinlock
+#ifdef __APPLE__ // Darwin: os_unfair_lock (OSSpinLock 은 deprecated, QoS/AMP 에서 priority inversion 위험)
 
-#include <libkern/OSAtomic.h>
+#include <os/lock.h>
 
 /** Typedef spinlock (=fast mutex) to a personalized type for portability */
-typedef OSSpinLock SpinLock;
+typedef os_unfair_lock SpinLock;
 
 /** @macro Lock a spinlock with a macro for genericity */
-#define spin_lock(c) OSSpinLockLock(&(c)->spin)
+#define spin_lock(c) os_unfair_lock_lock(&(c)->spin)
 
 /** @macro unlock a spinlock with a macro for genericity */
-#define spin_unlock(c) OSSpinLockUnlock(&(c)->spin)
+#define spin_unlock(c) os_unfair_lock_unlock(&(c)->spin)
 
 /** @macro Initialize a spinlock with a macro for genericity. */
-#define spin_init(c)  do {(c)->spin = OS_SPINLOCK_INIT;} while (0)
+#define spin_init(c)  do {(c)->spin = OS_UNFAIR_LOCK_INIT;} while (0)
 
 /** @macro Free a spinlock with a macro for genericity. */
-#define spin_free(c)   // FIXME ?? should this stay empty ?
+#define spin_free(c)   // os_unfair_lock 은 별도 해제 불필요
 
 
 #elif defined(__USE_XOPEN2K) // Posix spinlock
