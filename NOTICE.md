@@ -15,14 +15,15 @@ FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 ## Modifications in this fork
 
-This fork adds a WebAssembly build of the engine plus a small endgame-search
-tuning.
+This fork adds WebAssembly and iOS-native builds of the engine plus a small
+endgame-search tuning.
 
 - `src/search.c` — endgame selectivity table adjusted within the level ≤ 21
   range (25–30 empties).
-- `wasm/bridge.c` — Emscripten bridge exposing the engine entry points.
+- `src/util.c`, `src/util.h` — Apple-platform spinlock and worker QoS.
+- `wasm/bridge.c` — engine entry points (shared by the WASM and native builds).
 - `wasm/shim_log.c`, `wasm/shim_main.c` — WASM runtime shims.
-- `wasm/build_s.sh` (single-thread), `wasm/build_m.sh` (multi-thread) —
-  Emscripten build scripts.
+- `wasm/build_s.sh` (single-thread), `wasm/build_m.sh` (multi-thread),
+  `ios/build_ios.sh` (iOS static xcframework) — build scripts.
 
 All other source files are unchanged from the upstream Edax / AVX fork.
