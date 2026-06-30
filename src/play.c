@@ -31,10 +31,24 @@ static void play_emit_analyze_row(Play *play, int ply, const Move *played, int p
 	row.turn = play->player;
 	row.played_move = played ? played->x : NOMOVE;
 	row.played_score = played_score;
-	row.best_move = (alternative && legal_count > 0) ? alternative->x : NOMOVE;
-	row.best_score = played_score;
-	if (alternative && legal_count > 0 && alternative->score > row.best_score) {
-		row.best_score = alternative->score;
+	if (source != ANALYZE_SOURCE_BOOK) {
+		/* search: 둔 수가 곧 최선(기본). strictly-better 대안이 있을 때만 교체하여
+		   (best_move, best_score)가 항상 같은 수를 가리키게 한다(ANALYZE_REFINEMENT.md §2).
+		   기존엔 best_score=max(played,alt)만 잡고 best_move=alt 로 둬서, 둔 수가 최선일 때
+		   런너업 수에 둔 수의 점수가 붙는 페어링 버그가 있었다. */
+		row.best_move = played ? played->x : NOMOVE;
+		row.best_score = played_score;
+		if (alternative && legal_count > 0 && alternative->score > played_score) {
+			row.best_move = alternative->x;
+			row.best_score = alternative->score;
+		}
+	} else {
+		/* book: book이 지정한 최선수를 점수와 무관하게 유지(기존 동작 보존). */
+		row.best_move = (alternative && legal_count > 0) ? alternative->x : NOMOVE;
+		row.best_score = played_score;
+		if (alternative && legal_count > 0 && alternative->score > row.best_score) {
+			row.best_score = alternative->score;
+		}
 	}
 	row.legal_count = get_mobility(play->board.player, play->board.opponent);
 	row.depth = depth;
