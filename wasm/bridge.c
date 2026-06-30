@@ -554,8 +554,15 @@ static void filter_search_movelist(Search *search, const int allowed[64]) {
 
 static int flipsight_search_stream_run_impl(const char* board_plus_turn, int max_depth, const char* only_moves_csv) {
     fs_engine_ensure(&g_eng_solve, SOLVE_HASH_BITS, 1, 21);   // WASM: 공유 엔진 lazy 생성
-    if (EVAL_WEIGHT == NULL) return -1;   // ★ eval 미로딩 시 탐색 금지(accumlate_eval NULL 역참조 크래시 방지)
     FsEngine *e = &g_eng_solve;
+    if (EVAL_WEIGHT == NULL) {            // ★ eval 미로딩: 탐색 금지(accumlate_eval NULL 역참조 크래시 방지)
+        // 과거엔 그냥 return -1 → done 콜백 미방출 → JS(runOnePass)가 영구 대기("Evaluation not ready" 무한루프 → 90초 디스커넥트).
+        // 빈 done(count=0)을 방출해 JS 가 정상 resolve → _isSolving 해제 → 재시도 가능하게 한다.
+        e->solve_emitted = 0;
+        e->solve_done_emitted = 0;
+        emit_solve_hint60_done_stdout(NULL);
+        return -1;
+    }
     Play   *play   = e->play;
     Search *search = &play->search;
     MoveList book_moves;
