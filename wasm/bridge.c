@@ -231,10 +231,15 @@ EMSCRIPTEN_KEEPALIVE
 int flipsight_load_eval(const char* path) {
     /* 탐색 중 재로드 금지: EVAL_WEIGHT free/realloc 이 진행 중 search 를 dangling 시킴 */
     if (g_eng_analyze.master || g_eng_solve.master) return -1;
+    /* ★ eval_open 은 전역 EVAL_LOADED 가드로 "프로세스당 1회"만 실제 로딩하는데, eval_close 는 EVAL_LOADED 를
+       줄이지 않는다. 따라서 이미 로딩된 상태에서 eval_close()+eval_open() 을 하면 free 후 재로딩이 no-op 이 되어
+       EVAL_WEIGHT 가 NULL 로 남고, 다음 분석에서 accumlate_eval 이 NULL 역참조로 크래시한다.
+       (프로세스 생존 + Activity/플러그인 재생성 시 ensureBooted 가 nLoadEval 을 재호출하며 발생 — 간헐적.)
+       → eval.dat 는 항상 같은 파일이므로, 이미 로딩돼 있으면 그대로 둔다(재로딩 불필요). */
+    if (EVAL_WEIGHT != NULL) return 0;
     options.eval_file = (char*) path;
-    eval_close();
-    eval_open(options.eval_file);
-    return 0;
+    eval_open(options.eval_file);   /* 최초 1회만 실제 로딩(EVAL_LOADED 0→1) */
+    return (EVAL_WEIGHT != NULL) ? 0 : -2;
 }
 
 EMSCRIPTEN_KEEPALIVE
@@ -549,6 +554,7 @@ static void filter_search_movelist(Search *search, const int allowed[64]) {
 
 static int flipsight_search_stream_run_impl(const char* board_plus_turn, int max_depth, const char* only_moves_csv) {
     fs_engine_ensure(&g_eng_solve, SOLVE_HASH_BITS, 1, 21);   // WASM: 공유 엔진 lazy 생성
+    if (EVAL_WEIGHT == NULL) return -1;   // ★ eval 미로딩 시 탐색 금지(accumlate_eval NULL 역참조 크래시 방지)
     FsEngine *e = &g_eng_solve;
     Play   *play   = e->play;
     Search *search = &play->search;
@@ -648,6 +654,7 @@ static int count_board_discs64(const char *board_plus_turn) {
 /* ───── analyze (g_eng_analyze) ───── */
 static int analyze_game_from_position(const char* board_plus_turn, const char* moves_str) {
     fs_engine_ensure(&g_eng_analyze, 21, 1, 21);   // WASM analyze 워커: lazy 생성
+    if (EVAL_WEIGHT == NULL) return -1;   // ★ eval 미로딩 시 탐색 금지(accumlate_eval NULL 역참조 크래시 방지)
     FsEngine *e = &g_eng_analyze;
     Play *play = e->play;
     int len, k;
